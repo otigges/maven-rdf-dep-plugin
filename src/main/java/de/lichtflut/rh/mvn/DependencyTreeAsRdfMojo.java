@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * Goal which touches a timestamp file.
+ * Goal that writes the dependency-tree as RDF.
  */
 @Mojo( name = "write", defaultPhase = LifecyclePhase.PROCESS_SOURCES )
 public class DependencyTreeAsRdfMojo extends AbstractMojo {
@@ -69,13 +69,9 @@ public class DependencyTreeAsRdfMojo extends AbstractMojo {
             dir.mkdirs();
         }
         final File target = new File(dir, "dependencies.rdf." + format);
+        try (OutputStream out = new FileOutputStream(target)) {
 
-        FileOutputStream out = null;
-
-        try {
             DependencyNode root = dependencyGraphBuilder.buildDependencyGraph(project, null);
-
-            out = new FileOutputStream(target);
             getLog().info("Writing RDF dependency information to: " + target);
             RDFWriter writer = getWriter(out);
             writer.startRDF();
@@ -88,16 +84,7 @@ public class DependencyTreeAsRdfMojo extends AbstractMojo {
             throw new MojoExecutionException("Could not write RDF.", e);
         } catch (IOException e) {
             throw new MojoExecutionException("IO error occurred.", e);
-        } finally {
-            if (out != null) {
-                try {
-                    out.close();
-                } catch (IOException e) {
-                    getLog().error("Out could not be closed.", e);
-                }
-            }
         }
-
     }
 
     // ----------------------------------------------------
